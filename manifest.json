@@ -1,0 +1,14 @@
+{
+    "name":    "Anaglyphic Shock",
+    "version": "1.0",
+    "permissions": ["activeTab"],
+    "browser_action": {
+        "default_title": "Anaglyphic Shock"
+    },
+    "options_page": "options.html",
+    "content_scripts": [{
+        "matches": ["*://*/*"],
+        "js":      ["anaglyph.js"]
+    }],
+    "manifest_version": 2
+}
