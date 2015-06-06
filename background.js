@@ -69,35 +69,38 @@ function toAnaglyph(width, height, leftImage, rightImage) {
     return anaglyph;
 }
 
-function createAnaglyph(canvas, image) {
+function createAnaglyph(canvas, image, sendResponse) {
     var width = canvas.width / 2;
     var height = canvas.height;
     var context = canvas.getContext('2d');
 
-    context.drawImage(image, 0, 0);
+    var imageCopy = new Image(image.width, image.height);
+    imageCopy.width = image.width;
+    imageCopy.height = image.height;
+    imageCopy.onload = function() {
+	    context.drawImage(imageCopy, 0, 0);
 
-    var leftImage = context.getImageData(0,0,width,height);
-    var rightImage = context.getImageData(width,0,width,height);
-    canvas.width = parseInt(canvas.width)/2;
-    
-    var anaglyph = toAnaglyph(width, height, leftImage, rightImage);
+	    var leftImage = context.getImageData(0,0,width,height);
+	    var rightImage = context.getImageData(width,0,width,height);
+	    canvas.width = parseInt(canvas.width)/2;
+	    
+	    var anaglyph = toAnaglyph(width, height, leftImage, rightImage);
 
-    // Reuse the image we've already made...
-    leftImage.data.set(anaglyph);
-    context.putImageData(leftImage, 0, 0);
+	    // Reuse the image we've already made...
+	    leftImage.data.set(anaglyph);
+	    context.putImageData(leftImage, 0, 0);
 
-    var newImage = new Image();
-    newImage.src = canvas.toDataURL("image/png");
-    newImage.width = width;
-    newImage.height = height;
-    return newImage;
+	    sendResponse(canvas.toDataURL("image/png"));
+    };
+    imageCopy.src = image.src;
 }
 
 chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    if (request.message == "to-anaglyph") {
-      sendResponse(createAnaglyph(canvas, image)); 
+  function(image, sender, sendResponse) {
+      var canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      createAnaglyph(canvas, image, sendResponse); 
       return true;
-    }
   }
-)
+);
